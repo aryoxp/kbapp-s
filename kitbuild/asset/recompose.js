@@ -3,13 +3,6 @@ $(() => {
   let app = KitBuildApp.instance();
 });
 
-// short hand for logger class
-// so to log something, one could simply use:
-// Log.l('action', data);
-// class L {
-//   static log() {}
-// }
-
 CDM = {};
 CDM.option = {};
 
@@ -154,22 +147,6 @@ class KitBuildApp {
         importDialog.hide();
         this.conceptMap = conceptMap;
         this.kit = kit;
-
-        // data = KitBuildApp.parseIni(data);
-        // let conceptMap = Core.decompress(data.conceptMap.replaceAll('"',''));
-        // let kit = Core.decompress(data.kit.replaceAll('"',''));
-        // kit.canvas.conceptMap = conceptMap.canvas;
-        // let cyData = KitBuildUI.composeKitMap(kit.canvas);
-        // this.canvas.cy.elements().remove();
-        // this.canvas.cy.add(cyData);
-        // this.canvas.applyElementStyle()
-        // this.canvas.toolbar.tools.get(KitBuildToolbar.CAMERA).fit(null, {duration: 0})
-        // KitBuildUI.showBackgroundImage(this.canvas);
-        // CDM.option = kit.map.options;
-  
-        // this.conceptMap = conceptMap;
-        // this.kit = kit;
-        // importDialog.hide();
         // TODO: Apply kit options.
       } catch(e) {
         console.error(e);
@@ -198,7 +175,6 @@ class KitBuildApp {
       delete this.kit.canvas.conceptMap
       this.kit = KitBuildApp.cleanConceptMapData(this.kit);
       // console.log(this.conceptMap, this.kit, lmap);
-      // api.saveKit(kitdata);
       $("#concept-map-export-dialog .encoded-data").val(
         `conceptMap=${Core.compress(this.conceptMap)}\r\nkit=${Core.compress(this.kit)}\r\nlmap=${Core.compress(lmap)}\r\n`
       );
@@ -267,7 +243,6 @@ class KitBuildApp {
       importDialog.hide();
       this.conceptMap = conceptMap;
       this.kit = kit;
-      // this.decodeMap(importDialog, data.conceptMap);
     });
 
     /**
@@ -296,66 +271,6 @@ class KitBuildApp {
       let result = await api.saveLearnerMap(this.conceptMap, this.kit, lmap);
       if (result.lmap) UI.success('Learnermap has been saved.').show();
 
-    });
-
-    $(".app-navbar").on("click", ".bt-load", () => {
-      let kitMap = KitBuildApp.inst.kitMap;
-      if (!kitMap) {
-        UI.warning("Please open a kit.").show();
-        return;
-      }
-      if (feedbackDialog.learnerMapEdgesData)
-        $(".app-navbar .bt-clear-feedback").trigger("click");
-
-      let data = {
-        kid: kitMap.map.kid,
-        username: KitBuildApp.inst.user.username,
-      };
-      if (!data.username) delete data.username;
-      // this.ajax
-      //   .post("kitBuildApi/getLastDraftLearnerMapOfUser", data)
-      //   .then((learnerMap) => {
-      //     if (!learnerMap) {
-      //       UI.warning("No user saved map data for this kit.").show();
-      //       return;
-      //     }
-      //     if (this.canvas.cy.elements().length) {
-      //       let confirm = UI.confirm("Load saved concept map?")
-      //         .positive(() => {
-      //           learnerMap.kitMap = kitMap;
-      //           learnerMap.conceptMap = kitMap.conceptMap;
-      //           this.canvas.cy.elements().remove();
-      //           this.canvas.cy.add(KitBuildUI.composeLearnerMap(learnerMap));
-      //           this.canvas.applyElementStyle();
-      //           this.canvas.toolbar.tools
-      //             .get(KitBuildToolbar.CAMERA)
-      //             .fit(null, { duration: 0 })
-      //             .then(() => {
-      //               KitBuildApp.collab(
-      //                 "command",
-      //                 "set-kit-map",
-      //                 kitMap,
-      //                 this.canvas.cy.elements().jsons()
-      //               );
-      //             });
-      //           KitBuildApp.inst.setLearnerMap(learnerMap);
-      //           this.logger.setLearnerMapId(learnerMap.map.lmid);
-      //           L.log("load-learner-map", learnerMap.map, null, {
-      //             includeMapData: true,
-      //             lmid: learnerMap.map.lmid,
-      //           });
-      //           UI.info("Concept map loaded.").show();
-      //           confirm.hide();
-      //         })
-      //         .show();
-      //       return;
-      //     }
-      //     KitBuildApp.openLearnerMap(learnerMap.map.lmid, this.canvas);
-      //   })
-      //   .catch((error) => {
-      //     console.error(error);
-      //     UI.error("Unable to load saved concept map.").show();
-      //   });
     });
 
     /**
@@ -493,9 +408,7 @@ class KitBuildApp {
    *
    **/
 
-  handleRefresh() {
-    // api.getLoadedFile();
-  }
+  handleRefresh() {}
 
 }
 

@@ -5,65 +5,13 @@ const { app, dialog, BrowserWindow, ipcMain, electron } = require('electron')
 const path = require('path')
 const fs = require('fs');
 const ini = require('ini');
-// const contextMenu = require('electron-context-menu');
 const pako = require('pako');
 
-// const { dialog } = require('electron')
-var mainWindow;
-var composeKitWindow;
+var kitBuildWindow;
 
-var file;
-
-const createWindow = () => {
+const createKitBuildWindow = () => {
   // Create the browser window.
-  mainWindow = new BrowserWindow({
-    width: 1024,
-    height: 718,
-    show: false,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      spellcheck: true
-    },
-    autoHideMenuBar: true
-  });
-
-  // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
-  mainWindow.webContents.once('did-finish-load', () => {
-    // mainWindow.webContents.openDevTools();
-    mainWindow.show();
-  });
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
-}
-
-const createComposeKitWindow = (data) => {
-  // Create the browser window.
-  composeKitWindow = new BrowserWindow({
-    width: 1024,
-    height: 718,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload-compose-kit.js'),
-      spellcheck: true
-    },
-    autoHideMenuBar: true,
-    show: false,
-    parent: mainWindow, 
-    modal: true 
-  });
-  let pos = mainWindow.getPosition();
-  composeKitWindow.loadFile('compose-kit.html');
-  composeKitWindow.setPosition(pos[0] + 25, pos[1] + 50);
-  composeKitWindow.webContents.once('did-finish-load', () => {
-    // composeKitWindow.webContents.openDevTools();
-    composeKitWindow.show();
-  });
-
-}
-
-const createKitBuildWindow = (data) => {
-  // Create the browser window.
-  composeKitWindow = new BrowserWindow({
+  kitBuildWindow = new BrowserWindow({
     width: 1024,
     height: 718,
     webPreferences: {
@@ -73,11 +21,10 @@ const createKitBuildWindow = (data) => {
     autoHideMenuBar: true,
     show: false
   })
-  composeKitWindow.loadFile('kitbuild.html');
-  composeKitWindow.webContents.once('did-finish-load', () => {
-    // composeKitWindow.webContents.send('open-kit', data);
+  kitBuildWindow.loadFile('kitbuild.html');
+  kitBuildWindow.webContents.once('did-finish-load', () => {
     // composeKitWindow.webContents.openDevTools();
-    composeKitWindow.show();
+    kitBuildWindow.show();
   });
 
 }
@@ -97,100 +44,6 @@ app.whenReady().then(() => {
 
   ipcMain.handle('ping', () => "pong");
 
-  ipcMain.handle('open-file', (event, data) => {
-    dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
-      properties: ['openFile']
-    }).then(result => {
-      if (result.canceled) {
-        event.sender.send('open-file-cancelled', true);
-        // event.sender.send('open-file-result', false);
-        return;
-      }
-      if (result.filePaths.length > 0) {
-        let data = fs.readFileSync(result.filePaths[0], {
-          encoding: "utf-8"
-        });
-        file = ini.parse(data);
-        file.fileName = result.filePaths[0];
-        event.sender.send('open-file-result', file);
-      }
-    });
-  });
-
-  async function handleOpenImage() {
-    const { canceled, filePaths } = await dialog.showOpenDialog()
-    if (!canceled) {
-      // return filePaths[0];
-      return fs.readFileSync(filePaths[0], 'base64');
-    }
-  }
-
-  ipcMain.handle('open-image', handleOpenImage);
-
-  var saveFile = function (event, data, options) {
-    options = Object.assign({silent: false}, options);
-    // console.log(data, options);
-    let filePath = data.fileName;
-    
-    if(!filePath) {
-      filePath = dialog.showSaveDialogSync(BrowserWindow.getFocusedWindow(), {
-        defaultPath: 'temp.cmap'
-      });
-      if (filePath === undefined) {
-        event.sender.send(('save-file-as-cancelled'), true);
-        return;
-      }
-    }
-    if (fs.access(filePath, fs.F_OK, (err) => {
-      delete data.fileName;
-      if (err) {
-        let d = {};
-        d.conceptMap = compress(data);
-        let fileData = ini.stringify(d);
-        fs.writeFileSync(filePath, fileData);
-        event.sender.send((options.silent ? 'save-file-as-result-silent' : 'save-file-as-result'), true, filePath, ini.parse(fileData));
-        return;
-      } 
-      let d = ini.parse(fs.readFileSync(filePath, {encoding: 'utf-8'}));
-      d.conceptMap = compress(data);
-      // console.log(filePath, ini.stringify(d));
-      let fileData = ini.stringify(d);
-      fs.writeFileSync(filePath, fileData);
-      event.sender.send((options.silent ? 'save-file-as-result-silent' : 'save-file-as-result'), true, filePath, ini.parse(fileData));
-    }));
-  }
-
-  ipcMain.handle('get-loaded-file', (event) => {
-    event.sender.send('get-loaded-file-result', file);
-  });
-
-  ipcMain.handle('save-file-as', (event, data) => saveFile(event, data));
-  ipcMain.handle('save-file-as-silent', (event, data) => saveFile(event, data, {silent: true}));
-
-  ipcMain.handle('compose-kit', (event, fileName) => {
-    // console.log(fileName);
-    this.fileName = fileName;
-    createComposeKitWindow();
-  });
-
-  ipcMain.handle('load-concept-map', (event) => {
-    let data = fs.readFileSync(this.fileName, {
-      encoding: "utf-8"
-    });
-    let file = ini.parse(data);
-    // console.log(data, file);
-    event.sender.send('load-concept-map-result', file.conceptMap);
-  });
-
-  ipcMain.handle('load-kit', (event) => {
-    let data = fs.readFileSync(this.fileName, {
-      encoding: "utf-8"
-    });
-    let file = ini.parse(data);
-    // console.log(data, file);
-    event.sender.send('load-kit-result', file.kit);
-  });
-
   async function handleOpenKit() {
     const { canceled, filePaths } = await dialog.showOpenDialog()
     if (!canceled) {
@@ -199,53 +52,6 @@ app.whenReady().then(() => {
   }
 
   ipcMain.handle('open-kit', handleOpenKit);
-
-  ipcMain.handle('save-kit', (event, data) => {
-    let d = ini.parse(fs.readFileSync(this.fileName, { encoding: 'utf-8'}));
-    d.kit = compress(data);
-    // console.log(d, this.fileName);
-    fs.writeFileSync(this.fileName, ini.stringify(d));
-    event.sender.send('save-kit-result', true, d);
-  });
-
-  saveKitAs = (filePath, d) => {
-    return new Promise((resolve, reject) => {
-      if (fs.access(filePath, fs.F_OK, (err) => {
-        if (err) { // file not exists, it is a new file
-          fs.writeFileSync(filePath, ini.stringify(d));
-          d.fileName = filePath;
-          // console.log('new file', d, this.fileName, this);
-          resolve(d);
-          return d;
-        }
-        // file exists, overwriting
-        let dd = ini.parse(fs.readFileSync(filePath, {encoding: 'utf-8'}));
-        dd.conceptMap = d.conceptMap;
-        dd.kit = d.kit;
-        let fileData = ini.stringify(dd);
-        fs.writeFileSync(filePath, fileData);
-        // console.log('overwriting', dd, this.fileName, this);
-        resolve(dd);
-        return dd;
-      }));
-    });
-  }
-
-  ipcMain.handle('save-kit-as', async (event, data) => {
-    let d = ini.parse(fs.readFileSync(this.fileName, { encoding: 'utf-8'}));
-    d.kit = compress(data);    
-    let { canceled, filePath } = await dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), {
-      defaultPath: 'kit-new.cmap'
-    });
-    if (canceled) {
-      return {
-        result: false,
-        reason: 'cancelled'
-      };
-    }
-    this.fileName = filePath;
-    return await saveKitAs(filePath, d);
-  });
 
   saveLearnemapAs = (filePath, d) => {
     return new Promise((resolve, reject) => {
@@ -302,25 +108,6 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
-
-// contextMenu({
-// 	showSaveImageAs: true,
-//   prepend: (defaultActions, parameters, browserWindow) => [
-// 		{
-// 			label: 'Rainbow',
-// 			// Only show it when right-clicking images
-// 			visible: parameters.mediaType === 'image'
-// 		},
-// 		{
-// 			label: 'Search Google for “{selection}”',
-// 			// Only show it when right-clicking text
-// 			visible: parameters.selectionText.trim().length > 0,
-// 			click: () => {
-// 				shell.openExternal(`https://google.com/search?q=${encodeURIComponent(parameters.selectionText)}`);
-// 			}
-// 		}
-// 	]
-// });
 
 function uuidv4() {
   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
