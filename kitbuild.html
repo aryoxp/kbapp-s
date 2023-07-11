@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <meta id="core-lang" data-lang="
+      H4sIAAAAAAAAAzWQwU7EMAxEfwX5bPoB3BAgIYEWxNID3LJt2q0ITtS0rBbEv6/HSS+eN6PYjvxHnZPO
+      B7qhuwJMXYjZIzBVH9MZFsLUT9kdgu81ud9Q03iSEJ2lGzJ52Z4+yPbSS/HG8xxnOFOmYZIpHzWowHT0
+      IUQNHk2Z6o7nMh9ukrEGSk3TaCz+pNFOqzK6d2iNw6D4olX5C/gEEpCAkjeGMCWXFxzh1ZRp9j0mvUHg
+      sl/MQpmy+8HjPaS4a5drcHWby7dKy740LG42Zwofk1kVpiWOY8DA9wJMq9j6Vmz9KmVWK2X9mupd2lQv
+      f/ZY/6GV6TfGbzWfkP8Lty/hPfEBAAA=">
+  <meta id="core-client-config" data-collabhost="https://collab.kit-build.net" data-collabport="3000" data-seq="0"
+    data-core="
+      eyJiYXNldXJsIjoiaHR0cHM6XC9cL2NvbGxhYi5raXQtYnVpbGQubmV0OjgwODBcL2ZpcmFcL2luZGV4
+      LnBocFwva2l0YnVpbGRcLyIsImJhc2VmaWxldXJsIjoiaHR0cHM6XC9cL2NvbGxhYi5raXQtYnVpbGQu
+      bmV0OjgwODBcL2ZpcmFcL2tpdGJ1aWxkXC8iLCJhc3NldHVybCI6Imh0dHBzOlwvXC9jb2xsYWIua2l0
+      LWJ1aWxkLm5ldDo4MDgwXC9maXJhXC9raXRidWlsZFwvYXNzZXRcLyIsInNlc3NpZCI6ImJiNXBqNm91
+      aGp2MWw0Z2ltdHBqZXR0ZmNnIn0=">
+  <link rel="stylesheet" href=".asset/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href=".asset/vendor/bootstrap-icons/font/bootstrap-icons.css">
+  <link rel="stylesheet" href=".asset/vendor/general-ui/g.ui.css">
+  <link rel="stylesheet" href=".asset/vendor/animate.min.css">
+  <link rel="stylesheet" href=".asset/vendor/huebee/huebee.min.css">
+  <link rel="stylesheet" href=".asset/vendor/kitbuild/kbui.css">
+  <link rel="stylesheet" href=".asset/vendor/highlight/default.min.css">
+  <link rel="stylesheet" href="kitbuild/asset/recompose.css">
+  <link rel="icon" href="favicon.ico">
+  <title>Kit-Build: Recompose</title>
+</head>
+
+<body style="background-color: #e9e9e9;">
+  <div class="d-flex flex-column vh-100">
+    <div class="app-navbar d-flex p-1 pb-0">
+      <div style="border-radius: 50%; padding: 2px 4px; background-color: #698EFF; width: 32px;"
+        class="text-center me-1">
+        <img src="kb.svg" width="16px" height="16px" />
+      </div>
+      <button class="bt-open-kit btn btn-sm btn-primary"><i class="bi bi-folder2-open"></i> Open Kit</button>
+      <div class="btn-group btn-group-sm ms-1">
+        <button class="bt-import btn btn-outline-secondary"><i class="bi bi-arrow-right-short"></i><i class="bi bi-code-square"></i> Import</button>
+        <button class="bt-export btn btn-outline-secondary"><i class="bi bi-send"></i> Export</button>
+      </div>
+      <div class="btn-group btn-group-sm ms-1" id="recompose-saveload">
+        <button class="bt-save btn btn-outline-primary"><i class="bi bi-save"></i> Save</button>
+      </div>
+      <div class="btn-group btn-group-sm ms-1" id="recompose-reset">
+        <button class="bt-reset btn btn-outline-danger"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+      </div>
+      <div class="btn-group btn-group-sm ms-1" id="recompose-feedbacklevel">
+        <button class="bt-feedback btn btn-warning"><i class="bi bi-eye-fill"></i> Feedback <span
+            class="count"></span></button>
+        <button class="bt-clear-feedback btn btn-outline-secondary"><i class="bi bi-eye-slash-fill"></i></button>
+      </div>
+      <div class="flex-fill">&nbsp;</div>
+    </div>
+    <div class="d-flex flex-fill align-items-stretch p-1">
+      <!-- container of this layout template must have a display: flex style -->
+      <!-- or add d-flex Bootstrap class to this layout's container/parent   -->
+      <div class="kb-container d-flex flex-fill flex-column border bg-white rounded">
+        <div class="kb-toolbar p-1 d-flex align-items-center justify-content-between bg-light border-bottom">
+          <span class="left-stack"></span>
+          <span class="center-stack"><span class="btn btn-sm">&nbsp;</span></span>
+          <span class="right-stack"></span>
+        </div>
+        <div id="recompose-canvas" class="kb-cy flex-fill"></div>
+      </div>
+    </div>
+    <div class="d-flex">
+      <div class="status-panel flex-fill m-2 mt-0 d-flex" style="overflow-x: auto"></div>
+      <div class="status-control text-end m-2 mt-0"><button class="btn btn-primary btn-sm opacity-0">&nbsp;</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="concept-map-export-dialog" class="card d-none">
+    <h6 class="card-header"><i class="bi bi-send"></i> Export</h6>
+    <div class="card-body">
+      <textarea class="form-control encoded-data" rows="5"></textarea>
+    </div>
+    <div class="card-footer text-end">
+      <button class="btn btn-sm btn-secondary bt-cancel px-3">Cancel</button>
+      <button class="btn btn-sm btn-primary ms-1 bt-clipboard px-3"><i class="bi bi-clipboard"></i> Copy to Clipboard</button>
+    </div>
+  </div>
+  
+  <div id="concept-map-import-dialog" class="card d-none">
+    <h6 class="card-header"><i class="bi bi-arrow-right-short"></i><i class="bi bi-code-square"></i> Import</h6>
+    <div class="card-body">
+      <textarea class="form-control encoded-data" rows="5"></textarea>
+    </div>
+    <div class="card-footer d-flex text-end">
+      <button class="btn btn-sm btn-secondary bt-cancel px-3">Cancel</button>
+      <span class="flex-fill">&nbsp;</span>
+      <button class="btn btn-sm btn-success bt-paste"><i class="bi bi-clipboard"></i> Paste</button>
+      <button class="btn btn-sm btn-primary ms-1 bt-decode px-3"><i class="bi bi-clipboard"></i> Decode</button>
+    </div>
+  </div>
+
+  <div id="kit-content-dialog" class="card d-none">
+    <h6 class="card-header d-flex">
+      <span class="drag-handle flex-fill"><i class="dialog-icon bi bi-file-text"></i> <span
+          class="dialog-title">Content</span></span>
+      <i class="bi bi-x-lg bt-close bt-x" role="button"></i>
+    </h6>
+    <div class="card-body position-relative overflow-hidden overflow-scroll d-flex flex-fill mb-3">
+      <div class="content text-secondary"></div>
+    </div>
+    <div class="card-footer d-flex justify-content-between align-items-center">
+      <span>
+        <span class="bt-scroll-top btn btn-sm ms-1 btn-primary px-3"><i class="bi bi-chevron-bar-up"></i> Back to
+          Top</span>
+        <span class="bt-scroll-more btn btn-sm ms-1 btn-primary px-3"><i class="bi bi-chevron-down"></i> More</span>
+      </span>
+      <span>
+        <button class="btn btn-sm btn-secondary bt-close px-3">Close</button>
+        <button class="btn btn-sm resize-handle pe-0 ps-3"><i class="bi bi-textarea-resize"></i></button>
+      </span>
+    </div>
+  </div>
+
+  <div id="feedback-dialog" class="card d-none">
+    <h6 class="card-header d-flex">
+      <span class="drag-handle flex-fill"><i class="dialog-icon bi bi-eye-fill me-2"></i> <span
+          class="dialog-title">Quick Feedback</span></span>
+      <i class="bi bi-x-lg bt-close bt-x" role="button"></i>
+    </h6>
+    <div class="card-body">
+      <div class="feedback-content"></div>
+    </div>
+    <div class="card-footer text-end">
+      <button class="btn btn-sm btn-secondary bt-cancel bt-close px-3">OK</button>
+      <button class="btn btn-sm btn-warning bt-modify px-3 ms-1">Continue Kit-Building</button>
+    </div>
+  </div>
+
+  <div id="feedback-mode-dialog" class="card d-none">
+    <div class="card-body text-center">
+      <div class="feedback-content text-center d-flex align-items-center justify-content-center">
+        <i class="bi bi-exclamation-triangle fs-3 text-danger mx-3"></i> You are in Feedback mode.
+      </div>
+      <button class="btn bt-modify btn-warning btn-sm mt-2">Continue Kit-Building</button>
+    </div>
+  </div>
+
+  <!-- Dialog Modal -->
+  <div class="modal" id="modal-dialog" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content shadow">
+        <div class="modal-body">
+          <div class="dialog-head">
+            <div class="dialog-title fw-bold"></div>
+            <hr>
+          </div>
+          <div class="dialog-body d-flex align-items-center">
+            <i class="dialog-icon fs-1 me-3 ms-2"></i>
+            <div class="dialog-content" style="font-size:.9rem"></div>
+          </div>
+          <hr>
+          <div class="dialog-foot">
+            <button type="button" class="btn btn-sm btn-secondary bt-negative px-2 mx-2 mb-2">No</button>
+            <button type="button" class="btn btn-sm btn-primary bt-positive px-2 mb-2">Yes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /Dialog Modal -->
+  <!-- Loading Modal -->
+  <div class="modal" id="modal-loading" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <div class="modal-loading text-center text-primary">
+            <div class="animation"></div>
+            <div class="mt-2"><span class="loading-text text-dark"></span></div>
+          </div>
+          <div id="modal-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /Loading Modal -->
+</body>
+<!-- Scripts placed at the end of the document so the pages load faster -->
+<script type="text/javascript" src="core/asset/vendor/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="core/asset/vendor/pako/pako.min.js"></script>
+<script type="text/javascript" src="core/asset/js/core-clients.js"></script>
+<script type="text/javascript" src="core/asset/js/core-runtime.js"></script>
+<script type="text/javascript" src=".asset/vendor/popper.min.js"></script>
+<script type="text/javascript" src=".asset/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="core/asset/js/core-language.js"></script>
+<script type="text/javascript" src=".asset/vendor/general-ui/g.ui.js"></script>
+<script type="text/javascript" src=".asset/vendor/cytoscapejs/cytoscape.min.js"></script>
+<script type="text/javascript" src=".asset/vendor/cytoscapejs/layout-base.js"></script>
+<script type="text/javascript" src=".asset/vendor/cytoscapejs/cose-base.js"></script>
+<script type="text/javascript" src=".asset/vendor/cytoscapejs/cytoscape-fcose.js"></script>
+<script type="text/javascript" src=".asset/vendor/huebee/huebee.pkgd.min.js"></script>
+<script type="text/javascript" src=".asset/vendor/kitbuild/kbui.js"></script>
+<script type="text/javascript" src=".asset/vendor/kitbuild/kbui.canvas.style.js"></script>
+<script type="text/javascript" src=".asset/vendor/kitbuild/kbui.canvas.tool.js"></script>
+<script type="text/javascript" src=".asset/vendor/kitbuild/kbui.toolbar.js"></script>
+<script type="text/javascript" src=".asset/vendor/kitbuild/kitbuild.js"></script>
+<script type="text/javascript" src=".asset/vendor/kitbuild/analyzer.js"></script>
+<!-- <script type="text/javascript" src=".asset/vendor/kitbuild/logger.js"></script> -->
+<!-- <script type="text/javascript" src=".asset/vendor/socket.io.min.js"></script> -->
+<!-- <script type="text/javascript" src=".asset/vendor/kitbuild/kbui.collab.js"></script> -->
+<script type="text/javascript" src=".asset/vendor/highlight/highlight.min.js"></script>
+<script type="text/javascript" src=".asset/vendor/showdown.min.js"></script>
+<script type="text/javascript" src="kitbuild/asset/recompose.js"></script>
+
+</html>

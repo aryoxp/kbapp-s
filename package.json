@@ -1,0 +1,22 @@
+{
+  "name": "kbapp-s",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^25.2.0"
+  },
+  "dependencies": {
+    "ini": "^4.1.1",
+    "pako": "^2.1.0"
+  },
+  "files": [
+    "!.git*"
+  ]
+}
