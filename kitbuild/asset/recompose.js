@@ -111,49 +111,22 @@ class KitBuildApp {
      * Open Kit
      * */
 
-    $(".app-navbar").on("click", ".bt-open-kit", async () => {
-      let data = await api.openKit();
-      if (data === undefined) {
-        UI.warning('Kit open was cancelled.').show();
-        return;
-      }
-      try {
-
-        data = KitBuildApp.parseIni(data);
-        // console.log(data);
-        let conceptMap = Core.decompress(data.conceptMap.replaceAll('"',''));
-        if (data === undefined) {
-          this.showConceptMap(conceptMap);
-          return;
-        }
-        
-        let kit = Core.decompress(data.kit.replaceAll('"',''));
-        kit.canvas.conceptMap = conceptMap.canvas;
-        // console.warn(kit);
-  
-        let lmap = data.lmap ? Core.decompress(data.lmap.replaceAll('"','')) : {
-          canvas: {},
-          map: {}
-        };
-        lmap.canvas.conceptMap = conceptMap.canvas;
-  
-        let cyData = KitBuildUI.composeKitMap(data.lmap ? lmap.canvas : kit.canvas);
-        this.canvas.cy.elements().remove();
-        this.canvas.cy.add(cyData);
-        this.canvas.applyElementStyle()
-        this.canvas.toolbar.tools.get(KitBuildToolbar.CAMERA).fit(null, {duration: 0})
-        KitBuildUI.showBackgroundImage(this.canvas);
-        CDM.option = kit.map.options;
-        importDialog.hide();
-        this.conceptMap = conceptMap;
-        this.kit = kit;
-        // TODO: Apply kit options.
-      } catch(e) {
-        console.error(e);
-        UI.errorDialog("Invalid kit.").show();
-      }
-
-    });
+    // $(".app-navbar").on("click", ".bt-open-kit", async () => {
+    //   let data = await api.openKit();
+    //   if (data === undefined) {
+    //     UI.warning('Kit open was cancelled.').show();
+    //     return;
+    //   }
+    //   this.openKit(data).then((conceptMap, kit) => {
+    //     importDialog.hide();
+    //     this.conceptMap = conceptMap;
+    //     this.kit = kit;
+    //     // TODO: Apply kit options.
+    //   }).catch((err) => {
+    //     console.error(err);
+    //     UI.errorDialog(err).show();
+    //   });
+    // });
 
         /**
      *
@@ -408,7 +381,67 @@ class KitBuildApp {
    *
    **/
 
-  handleRefresh() {}
+  handleRefresh() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mapId = urlParams.get('mapid');
+    // console.log(mapId, urlParams);
+    let data = MAPS.get(mapId);
+    // console.log(data);
+    this.openKit(data).then(result => {
+      // console.log(result);
+      this.conceptMap = result.conceptMap;
+      this.kit = result.kit;
+      // TODO: Apply kit options.
+    }).catch((err) => {
+      // console.error(err);
+      UI.errorDialog(err).show();
+    });
+  }
+
+  openKit(data) {
+    return new Promise((resolve, reject) => {
+      try {
+        // console.log(data);
+        if (data === undefined) reject('Invalid data.');
+
+        data = KitBuildApp.parseIni(data);
+        // console.log(data);
+
+        if (!data.conceptMap) reject('Invalid concept map.');
+        if (!data.kit) reject('Invalid kit.');
+
+        let conceptMap = Core.decompress(data.conceptMap.replaceAll('"',''));
+        if (data === undefined) {
+          this.showConceptMap(conceptMap);
+          return;
+        }
+        
+        let kit = Core.decompress(data.kit.replaceAll('"',''));
+        kit.canvas.conceptMap = conceptMap.canvas;
+        // console.warn(kit);
+  
+        let lmap = data.lmap ? Core.decompress(data.lmap.replaceAll('"','')) : {
+          canvas: {},
+          map: {}
+        };
+        lmap.canvas.conceptMap = conceptMap.canvas;
+  
+        let cyData = KitBuildUI.composeKitMap(data.lmap ? lmap.canvas : kit.canvas);
+        this.canvas.cy.elements().remove();
+        this.canvas.cy.add(cyData);
+        this.canvas.applyElementStyle()
+        this.canvas.toolbar.tools.get(KitBuildToolbar.CAMERA).fit(null, {duration: 0})
+        KitBuildUI.showBackgroundImage(this.canvas);
+        CDM.option = kit.map.options;
+        // console.warn(kit);
+        resolve({conceptMap: conceptMap, kit: kit});
+      } catch(e) {
+        // console.error(e);
+        // UI.errorDialog("Invalid kit.").show();
+        reject(e);
+      }
+    });
+  }
 
 }
 
