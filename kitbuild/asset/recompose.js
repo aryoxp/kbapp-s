@@ -111,22 +111,22 @@ class KitBuildApp {
      * Open Kit
      * */
 
-    // $(".app-navbar").on("click", ".bt-open-kit", async () => {
-    //   let data = await api.openKit();
-    //   if (data === undefined) {
-    //     UI.warning('Kit open was cancelled.').show();
-    //     return;
-    //   }
-    //   this.openKit(data).then((conceptMap, kit) => {
-    //     importDialog.hide();
-    //     this.conceptMap = conceptMap;
-    //     this.kit = kit;
-    //     // TODO: Apply kit options.
-    //   }).catch((err) => {
-    //     console.error(err);
-    //     UI.errorDialog(err).show();
-    //   });
-    // });
+    $(".app-navbar").on("click", ".bt-open-kit", async () => {
+      let data = await api.openKit();
+      if (data === undefined) {
+        UI.warning('Kit open was cancelled.').show();
+        return;
+      }
+      this.openKit(data).then(result => {
+        importDialog.hide();
+        this.conceptMap = result.conceptMap;
+        this.kit = result.kit;
+        // TODO: Apply kit options.
+      }).catch((err) => {
+        console.error(err);
+        UI.errorDialog(err).show();
+      });
+    });
 
         /**
      *
@@ -145,11 +145,16 @@ class KitBuildApp {
       let lmap = {};
       lmap.canvas = KitBuildUI.buildConceptMapData(this.canvas);
       lmap = KitBuildApp.cleanConceptMapData(lmap);
-      delete this.kit.canvas.conceptMap
+      delete this.kit.canvas.conceptMap;
+      delete this.kit.parsedOptions;
+      delete this.conceptMap.canvas.propositions;
       this.kit = KitBuildApp.cleanConceptMapData(this.kit);
       // console.log(this.conceptMap, this.kit, lmap);
+      let ccmap = Core.compress(this.conceptMap);
+      let ckit = Core.compress(this.kit);
+      let clmap = Core.compress(lmap);
       $("#concept-map-export-dialog .encoded-data").val(
-        `conceptMap=${Core.compress(this.conceptMap)}\r\nkit=${Core.compress(this.kit)}\r\nlmap=${Core.compress(lmap)}\r\n`
+        `conceptMap=${ccmap}\r\nkit=${ckit}\r\nlmap=${clmap}\r\n`
       );
       exportDialog.show();
     });
@@ -198,6 +203,7 @@ class KitBuildApp {
       
       let kit = Core.decompress(data.kit.replaceAll('"',''));
       kit.canvas.conceptMap = conceptMap.canvas;
+      KitBuildApp.parseKitMapOptions(kit);
       // console.warn(kit);
 
       let lmap = data.lmap ? Core.decompress(data.lmap.replaceAll('"','')) : {
@@ -230,7 +236,10 @@ class KitBuildApp {
       if (feedbackDialog.learnerMapEdgesData)
         $(".app-navbar .bt-clear-feedback").trigger("click");
 
+      delete this.conceptMap.canvas.propositions;
       delete this.kit.canvas.conceptMap;
+      delete this.kit.parsedOptions;
+
       this.kit = KitBuildApp.cleanConceptMapData(this.kit);
 
       let lmap = {
@@ -292,6 +301,7 @@ class KitBuildApp {
       learnerMapData.conceptMap = this.conceptMap.canvas;
       // console.log(learnerMapData);
       // console.log(this.kit);
+      KitBuildApp.parseKitMapOptions(this.kit);
       Analyzer.composePropositions(learnerMapData);
       let direction = this.conceptMap.map.direction;
       let feedbacklevel = parseInt(this.kit.parsedOptions.feedbacklevel);
@@ -382,21 +392,21 @@ class KitBuildApp {
    **/
 
   handleRefresh() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const mapId = urlParams.get('mapid');
-    // console.log(mapId, urlParams);
-    let data = MAPS.get(mapId);
-    // console.log(data);
-    this.openKit(data).then(result => {
-      // console.log(result);
-      this.conceptMap = result.conceptMap;
-      this.kit = result.kit;
-      KitBuildApp.parseKitMapOptions(this.kit);
-      // TODO: Apply kit options.
-    }).catch((err) => {
-      // console.error(err);
-      UI.error(err).show();
-    });
+    // const urlParams = new URLSearchParams(window.location.search);
+    // const mapId = urlParams.get('mapid');
+    // // console.log(mapId, urlParams);
+    // let data = MAPS.get(mapId);
+    // // console.log(data);
+    // this.openKit(data).then(result => {
+    //   // console.log(result);
+    //   this.conceptMap = result.conceptMap;
+    //   this.kit = result.kit;
+    //   KitBuildApp.parseKitMapOptions(this.kit);
+    //   // TODO: Apply kit options.
+    // }).catch((err) => {
+    //   // console.error(err);
+    //   UI.error(err).show();
+    // });
   }
 
   openKit(data) {
@@ -419,6 +429,7 @@ class KitBuildApp {
         
         let kit = Core.decompress(data.kit.replaceAll('"',''));
         kit.canvas.conceptMap = conceptMap.canvas;
+        KitBuildApp.parseKitMapOptions(kit);
         // console.warn(kit);
   
         let lmap = data.lmap ? Core.decompress(data.lmap.replaceAll('"','')) : {
