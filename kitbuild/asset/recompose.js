@@ -294,7 +294,7 @@ class KitBuildApp {
       // console.log(this.kit);
       Analyzer.composePropositions(learnerMapData);
       let direction = this.conceptMap.map.direction;
-      let feedbacklevel = parseInt(this.kit.map.options.feedbacklevel);
+      let feedbacklevel = parseInt(this.kit.parsedOptions.feedbacklevel);
       let compare = Analyzer.compare(learnerMapData, direction);
       let level = Analyzer.NONE;
       let dialogLevel = Analyzer.NONE;
@@ -391,10 +391,11 @@ class KitBuildApp {
       // console.log(result);
       this.conceptMap = result.conceptMap;
       this.kit = result.kit;
+      KitBuildApp.parseKitMapOptions(this.kit);
       // TODO: Apply kit options.
     }).catch((err) => {
       // console.error(err);
-      UI.errorDialog(err).show();
+      UI.error(err).show();
     });
   }
 
@@ -501,8 +502,6 @@ KitBuildApp.parseKitMapOptions = (kitMap) => {
 
 KitBuildApp.resetMapToKit = (kitMap, canvas) => {
   return new Promise((resolve, reject) => {
-    // will also set and cache the concept map
-    // KitBuildApp.inst.setKitMap(kitMap);
     // console.log(kitMap, canvas);
     let cyData = KitBuildUI.composeKitMap(kitMap.canvas);
     canvas.cy.elements().remove();
@@ -530,39 +529,6 @@ KitBuildApp.resetMapToKit = (kitMap, canvas) => {
         .fit(null, { duration: 0 });
       resolve(true);
     }
-
-    // TODO: apply kit options to UI
-    // console.log(kitMap)
-
-    // let feedbacklevelFeature =
-    //   '<button class="bt-feedback btn btn-warning"><i class="bi bi-eye-fill"></i> Feedback <span class="count"></span></button>';
-    // feedbacklevelFeature +=
-    //   '<button class="bt-clear-feedback btn btn-warning"><i class="bi bi-eye-slash-fill"></i> Clear Feedback</button>';
-    // let saveloadFeature =
-    //   '<button class="bt-save btn btn-secondary"><i class="bi bi-download"></i> Save</button>';
-    // saveloadFeature +=
-    //   '<button class="bt-load btn btn-secondary"><i class="bi bi-upload"></i> Load</button>';
-    // let readcontentFeature =
-    //   '<button class="bt-content btn btn-sm btn-secondary"><i class="bi bi-file-text-fill"></i> Contents</button>';
-    // let resetFeature =
-    //   '<button class="bt-reset btn btn-danger"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>';
-
-    // if (kitMap.parsedOptions.feedbacklevel)
-    //   $("#recompose-feedbacklevel")
-    //     .html(feedbacklevelFeature)
-    //     .removeClass("d-none");
-    // else $("#recompose-feedbacklevel").html("").addClass("d-none");
-    // if (kitMap.parsedOptions.saveload)
-    //   $("#recompose-saveload").html(saveloadFeature).removeClass("d-none");
-    // else $("#recompose-saveload").html("").addClass("d-none");
-    // if (kitMap.parsedOptions.reset)
-    //   $("#recompose-reset").html(resetFeature).removeClass("d-none");
-    // else $("#recompose-reset").html("").addClass("d-none");
-    // if (kitMap.parsedOptions.readcontent)
-    //   $("#recompose-readcontent")
-    //     .html(readcontentFeature)
-    //     .removeClass("d-none");
-    // else $("#recompose-readcontent").html("").addClass("d-none");
     return;
   });
 };
