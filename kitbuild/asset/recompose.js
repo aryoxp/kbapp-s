@@ -292,6 +292,7 @@ class KitBuildApp {
       learnerMapData.conceptMap = this.conceptMap.canvas;
       // console.log(learnerMapData);
       // console.log(this.kit);
+      KitBuildApp.parseKitMapOptions(this.kit);
       Analyzer.composePropositions(learnerMapData);
       let direction = this.conceptMap.map.direction;
       let feedbacklevel = parseInt(this.kit.parsedOptions.feedbacklevel);
