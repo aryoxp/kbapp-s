@@ -1110,18 +1110,10 @@ class KitBuildImageTool extends KitBuildCanvasTool {
   }
 
   async action(event, e, nodes) {
-    console.error(event, e, nodes);
+    // console.error(event, e, nodes);
     let base64 = await api.openImage();
-    console.log(base64);
-    if (base64 != undefined) {
-      nodes[0].style('background-image', `url("data:image/png;base64,${base64}")`);
-      nodes[0].style('background-fit', `cover`);
-      nodes[0].style('background-color', `rgba(255,255,255,0)`);
-      nodes[0].style('color', `rgb(0,0,0)`);
-      nodes[0].style('text-opacity', `0`);
-      nodes[0].data('image', base64)
-    }
-    console.log(nodes[0]);
+    if (base64 != undefined)
+      KitBuildUI.showNodeBackgroundImage(nodes[0], base64);
     return;
   }
 }
